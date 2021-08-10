@@ -1,0 +1,31 @@
+import torch.nn as nn
+from torchvision import models
+from torch import optim
+from torch.optim import lr_scheduler
+from torch.utils.data import DataLoader
+from dogsvscats.dataset import get_datasets
+from dogsvscats.model import train_model
+from dogsvscats import config
+
+
+def train(batch_size=config.BS, lr=config.LR, num_epochs=config.EPOCHS):
+    train_ds, valid_ds, _ = get_datasets()
+    train_dl = DataLoader(train_ds, batch_size, shuffle=True, num_workers=config.NW)
+    valid_dl = DataLoader(valid_ds, batch_size, shuffle=True, num_workers=config.NW)
+
+    model = models.resnet18(pretrained=True)
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, len(config.CLASSES))
+    model = model.to(config.DEVICE)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr, momentum=0.9)
+    scheduler = lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="max", patience=config.SCHEDULER_PATIENCE, verbose=True
+    )
+
+    model = train_model(
+        model, criterion, optimizer, scheduler, train_dl, valid_dl, num_epochs
+    )
+
+
+train()
