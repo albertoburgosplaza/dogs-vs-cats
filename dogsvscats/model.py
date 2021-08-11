@@ -2,7 +2,9 @@ import torch
 from dogsvscats import config
 
 
-def train_model(model, criterion, optimizer, scheduler, train_dl, valid_dl, num_epochs):
+def train_model(
+    model, criterion, optimizer, scheduler, es, train_dl, valid_dl, num_epochs
+):
     dataloaders = {"train": train_dl, "valid": valid_dl}
 
     for epoch in range(num_epochs):
@@ -38,5 +40,10 @@ def train_model(model, criterion, optimizer, scheduler, train_dl, valid_dl, num_
 
             if dl == "valid":
                 scheduler.step(epoch_acc)
+                es(epoch_acc, model)
+
+        if es.early_stop:
+            print("Early stopping")
+            break
 
     return model
