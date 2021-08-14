@@ -47,3 +47,22 @@ def train_model(
             break
 
     return model
+
+
+def eval_model(model, dl):
+    model.eval()
+
+    running_corrects = 0
+
+    for inputs, labels in dl:
+        inputs = inputs.to(config.DEVICE)
+        labels = labels.to(config.DEVICE)
+
+        outputs = model(inputs)
+        _, preds = torch.max(outputs, 1)
+
+        running_corrects += torch.sum(preds == labels.data)
+
+    acc = running_corrects.double() / len(dl.dataset)
+
+    print(f"Acc: {acc:.4f}")
