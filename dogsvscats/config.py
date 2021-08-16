@@ -16,3 +16,5 @@ BS = 128
 NW = 6
 SCHEDULER_PATIENCE = 2
 EARLYSTOPPING_PATIENCE = 4
+MODEL_NAME = "mobilenet_v3_small"
+CHECKPOINT_PATH = DATA_PATH / "mobilenet_v3_small.pt"

@@ -1,5 +1,29 @@
 import torch
+import torch.nn as nn
+from torchvision import models
 from dogsvscats import config
+
+MODELS = ["resnet18", "mobilenet_v3_small"]
+
+
+def load_model(model_name: str, checkpoint_path=None):
+    if model_name not in MODELS:
+        raise ValueError(f"{model_name} not available.")
+
+    if model_name == "resnet18":
+        model = models.resnet18(pretrained=True)
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Linear(num_ftrs, len(config.CLASSES))
+    elif model_name == "mobilenet_v3_small":
+        model = models.mobilenet_v3_small(pretrained=True)
+        num_ftrs = model.classifier[3].in_features
+        model.classifier[3] = nn.Linear(num_ftrs, len(config.CLASSES))
+
+    if checkpoint_path:
+        model.load_state_dict(torch.load(checkpoint_path))
+
+    model = model.to(config.DEVICE)
+    return model
 
 
 def train_model(
