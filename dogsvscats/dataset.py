@@ -13,7 +13,7 @@ transform_ops = transforms.Compose(
 )
 
 
-def get_datasets():
+def get_datasets(valid_frac, debug=False, debug_frac=None):
     train_data = {"path": [], "name": [], "id": [], "label": []}
 
     for f in config.TRAIN_PATH.glob(pattern="*"):
@@ -25,10 +25,11 @@ def get_datasets():
 
     train_data = pd.DataFrame(train_data)
 
-    if config.DEBUG:
-        train_data = train_data.sample(frac=config.DEBUG_FRAC).reset_index(drop=True)
+    if debug:
+        print("Debug mode...")
+        train_data = train_data.sample(frac=debug_frac).reset_index(drop=True)
 
-    valid_idx = train_data.sample(frac=config.VALID_SAMPLE).index
+    valid_idx = train_data.sample(frac=valid_frac).index
     valid_data = train_data.loc[valid_idx].reset_index(drop=True)
     train_data = train_data.loc[train_data.index.difference(valid_idx)].reset_index(
         drop=True
