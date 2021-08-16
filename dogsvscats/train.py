@@ -24,7 +24,7 @@ def train(batch_size=config.BS, lr=config.LR, num_epochs=config.EPOCHS):
         patience=config.EARLYSTOPPING_PATIENCE,
         mode="max",
         verbose=True,
-        path=config.DATA_PATH / "checkpoint.pt",
+        path=config.CHECKPOINT_PATH,
     )
 
     model = train_model(
