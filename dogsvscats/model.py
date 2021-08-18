@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torchvision import models
+from torchmetrics import Accuracy, Precision, Recall
 from dogsvscats import config
 
 MODELS = ["resnet18", "mobilenet_v3_small"]
@@ -31,6 +32,18 @@ def train_model(
 ):
     dataloaders = {"train": train_dl, "valid": valid_dl}
 
+    accuracy = {dl: Accuracy().to(config.DEVICE) for dl in dataloaders}
+
+    precision = {
+        dl: Precision(num_classes=len(config.CLASSES), average=None).to(config.DEVICE)
+        for dl in dataloaders
+    }
+
+    recall = {
+        dl: Recall(num_classes=len(config.CLASSES), average=None).to(config.DEVICE)
+        for dl in dataloaders
+    }
+
     for epoch in range(num_epochs):
         print(f"Epoch {epoch}/{num_epochs - 1}")
 
@@ -38,7 +51,6 @@ def train_model(
             model.train() if dl == "train" else model.eval()
 
             running_loss = 0.0
-            running_corrects = 0
 
             for inputs, labels in dataloaders[dl]:
                 inputs = inputs.to(config.DEVICE)
@@ -55,16 +67,22 @@ def train_model(
                     optimizer.step()
 
                 running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+                accuracy[dl](preds, labels.data)
+                precision[dl](preds, labels.data)
+                recall[dl](preds, labels.data)
 
             epoch_loss = running_loss / len(dataloaders[dl].dataset)
-            epoch_acc = running_corrects.double() / len(dataloaders[dl].dataset)
 
-            print(f"{dl} -> Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}")
+            print(
+                f"{dl} -> Loss: {epoch_loss:.4f} "
+                f"Accuracy: {accuracy[dl].compute():.4f} "
+                f"Precision: {[round(v, 4) for v in precision[dl].compute().tolist()]} "
+                f"Recall: {[round(v, 4) for v in recall[dl].compute().tolist()]}"
+            )
 
             if dl == "valid":
-                scheduler.step(epoch_acc)
-                es(epoch_acc, model)
+                scheduler.step(accuracy[dl].compute())
+                es(accuracy[dl].compute(), model)
 
         if es.early_stop:
             print("Early stopping")
@@ -76,7 +94,11 @@ def train_model(
 def eval_model(model, dl):
     model.eval()
 
-    running_corrects = 0
+    accuracy = Accuracy().to(config.DEVICE)
+    precision = Precision(num_classes=len(config.CLASSES), average=None).to(
+        config.DEVICE
+    )
+    recall = Recall(num_classes=len(config.CLASSES), average=None).to(config.DEVICE)
 
     for inputs, labels in dl:
         inputs = inputs.to(config.DEVICE)
@@ -85,8 +107,12 @@ def eval_model(model, dl):
         outputs = model(inputs)
         _, preds = torch.max(outputs, 1)
 
-        running_corrects += torch.sum(preds == labels.data)
+        accuracy(preds, labels.data)
+        precision(preds, labels.data)
+        recall(preds, labels.data)
 
-    acc = running_corrects.double() / len(dl.dataset)
-
-    print(f"Acc: {acc:.4f}")
+    print(
+        f"Accuracy: {accuracy.compute():.4f} "
+        f"Precision: {[round(v, 4) for v in precision.compute().tolist()]} "
+        f"Recall: {[round(v, 4) for v in recall.compute().tolist()]}"
+    )
