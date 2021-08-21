@@ -116,3 +116,11 @@ def eval_model(model, dl):
         f"Precision: {[round(v, 4) for v in precision.compute().tolist()]} "
         f"Recall: {[round(v, 4) for v in recall.compute().tolist()]}"
     )
+
+
+def predict_model(model, image):
+    model.eval()
+    output = model(image)
+    _, pred = torch.max(output, 1)
+    pred_class = int(pred.cpu().item())
+    return pred_class

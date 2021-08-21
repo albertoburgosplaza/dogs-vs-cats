@@ -1,7 +1,7 @@
 import argparse
 from torch.utils.data import DataLoader
 from dogsvscats.model import eval_model, load_model, MODELS
-from dogsvscats.dataset import get_datasets
+from dogsvscats.data import get_datasets
 from dogsvscats import config
 
 parser = argparse.ArgumentParser()
