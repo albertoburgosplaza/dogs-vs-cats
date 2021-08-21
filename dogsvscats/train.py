@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch import optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
-from dogsvscats.dataset import get_datasets
+from dogsvscats.data import get_datasets
 from dogsvscats.model import train_model, load_model, MODELS
 from dogsvscats.callbacks import EarlyStopping
 from dogsvscats import config
