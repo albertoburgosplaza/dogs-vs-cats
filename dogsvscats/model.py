@@ -47,12 +47,12 @@ def train_model(
     for epoch in range(num_epochs):
         print(f"Epoch {epoch}/{num_epochs - 1}")
 
-        for dl in dataloaders:
+        for dl, value in dataloaders.items():
             model.train() if dl == "train" else model.eval()
 
             running_loss = 0.0
 
-            for inputs, labels in dataloaders[dl]:
+            for inputs, labels in value:
                 inputs = inputs.to(config.DEVICE)
                 labels = labels.to(config.DEVICE)
 
@@ -122,5 +122,4 @@ def predict_model(model, image):
     model.eval()
     output = model(image)
     _, pred = torch.max(output, 1)
-    pred_class = int(pred.cpu().item())
-    return pred_class
+    return int(pred.cpu().item())
