@@ -1,5 +1,5 @@
+import warnings
 import argparse
-import torch.nn as nn
 from torch import optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
@@ -8,6 +8,7 @@ from dogsvscats.model import train_model, load_model, MODELS
 from dogsvscats.callbacks import EarlyStopping
 from dogsvscats import config
 
+warnings.filterwarnings("ignore", category=UserWarning)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -71,7 +72,6 @@ valid_dl = DataLoader(valid_ds, args.batch_size, shuffle=True, num_workers=args.
 
 model = load_model(args.model)
 
-criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), args.learning_rate, momentum=0.9)
 scheduler = lr_scheduler.ReduceLROnPlateau(
     optimizer, mode="max", patience=args.scheduler_patience, verbose=True
@@ -83,6 +83,4 @@ es = EarlyStopping(
     path=args.checkpoint_path,
 )
 
-model = train_model(
-    model, criterion, optimizer, scheduler, es, train_dl, valid_dl, args.epochs
-)
+model = train_model(model, optimizer, scheduler, es, train_dl, valid_dl, args.epochs)

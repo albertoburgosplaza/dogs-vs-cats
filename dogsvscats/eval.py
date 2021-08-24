@@ -1,8 +1,11 @@
+import warnings
 import argparse
 from torch.utils.data import DataLoader
 from dogsvscats.model import eval_model, load_model, MODELS
 from dogsvscats.data import get_datasets
 from dogsvscats import config
+
+warnings.filterwarnings("ignore", category=UserWarning)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torchvision import models
-from torchmetrics import Accuracy, Precision, Recall
+from dogsvscats.metrics import Metrics
 from dogsvscats import config
 
 MODELS = ["resnet18", "mobilenet_v3_small"]
@@ -27,62 +27,39 @@ def load_model(model_name: str, checkpoint_path=None):
     return model
 
 
-def train_model(
-    model, criterion, optimizer, scheduler, es, train_dl, valid_dl, num_epochs
-):
+def train_one_epoch(model, optimizer, scheduler, es, dataloaders):
+    for dl, value in dataloaders.items():
+        print(f"Processing {dl} data...")
+        model.train() if dl == "train" else model.eval()
+        metrics = Metrics()
+
+        for inputs, labels in value:
+            inputs = inputs.to(config.DEVICE)
+            labels = labels.to(config.DEVICE)
+
+            optimizer.zero_grad()
+
+            outputs = model(inputs)
+            metrics(outputs, labels, inputs.size(0))
+
+            if dl == "train":
+                metrics.loss.batch_loss.backward()
+                optimizer.step()
+
+        metrics.show()
+
+        if dl == "valid":
+            scheduler.step(metrics.accuracy.get())
+            es(metrics.accuracy.get(), model)
+
+
+def train_model(model, optimizer, scheduler, es, train_dl, valid_dl, num_epochs):
     dataloaders = {"train": train_dl, "valid": valid_dl}
-
-    accuracy = {dl: Accuracy().to(config.DEVICE) for dl in dataloaders}
-
-    precision = {
-        dl: Precision(num_classes=len(config.CLASSES), average=None).to(config.DEVICE)
-        for dl in dataloaders
-    }
-
-    recall = {
-        dl: Recall(num_classes=len(config.CLASSES), average=None).to(config.DEVICE)
-        for dl in dataloaders
-    }
 
     for epoch in range(num_epochs):
         print(f"Epoch {epoch}/{num_epochs - 1}")
 
-        for dl in dataloaders:
-            model.train() if dl == "train" else model.eval()
-
-            running_loss = 0.0
-
-            for inputs, labels in dataloaders[dl]:
-                inputs = inputs.to(config.DEVICE)
-                labels = labels.to(config.DEVICE)
-
-                optimizer.zero_grad()
-
-                outputs = model(inputs)
-                _, preds = torch.max(outputs, 1)
-                loss = criterion(outputs, labels)
-
-                if dl == "train":
-                    loss.backward()
-                    optimizer.step()
-
-                running_loss += loss.item() * inputs.size(0)
-                accuracy[dl](preds, labels.data)
-                precision[dl](preds, labels.data)
-                recall[dl](preds, labels.data)
-
-            epoch_loss = running_loss / len(dataloaders[dl].dataset)
-
-            print(
-                f"{dl} -> Loss: {epoch_loss:.4f} "
-                f"Accuracy: {accuracy[dl].compute():.4f} "
-                f"Precision: {[round(v, 4) for v in precision[dl].compute().tolist()]} "
-                f"Recall: {[round(v, 4) for v in recall[dl].compute().tolist()]}"
-            )
-
-            if dl == "valid":
-                scheduler.step(accuracy[dl].compute())
-                es(accuracy[dl].compute(), model)
+        train_one_epoch(model, optimizer, scheduler, es, dataloaders)
 
         if es.early_stop:
             print("Early stopping")
@@ -93,34 +70,20 @@ def train_model(
 
 def eval_model(model, dl):
     model.eval()
-
-    accuracy = Accuracy().to(config.DEVICE)
-    precision = Precision(num_classes=len(config.CLASSES), average=None).to(
-        config.DEVICE
-    )
-    recall = Recall(num_classes=len(config.CLASSES), average=None).to(config.DEVICE)
+    metrics = Metrics()
 
     for inputs, labels in dl:
         inputs = inputs.to(config.DEVICE)
         labels = labels.to(config.DEVICE)
 
         outputs = model(inputs)
-        _, preds = torch.max(outputs, 1)
+        metrics(outputs, labels, inputs.size(0))
 
-        accuracy(preds, labels.data)
-        precision(preds, labels.data)
-        recall(preds, labels.data)
-
-    print(
-        f"Accuracy: {accuracy.compute():.4f} "
-        f"Precision: {[round(v, 4) for v in precision.compute().tolist()]} "
-        f"Recall: {[round(v, 4) for v in recall.compute().tolist()]}"
-    )
+    metrics.show()
 
 
 def predict_model(model, image):
     model.eval()
     output = model(image)
     _, pred = torch.max(output, 1)
-    pred_class = int(pred.cpu().item())
-    return pred_class
+    return int(pred.cpu().item())
