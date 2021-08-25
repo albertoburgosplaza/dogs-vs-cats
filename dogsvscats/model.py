@@ -1,13 +1,17 @@
 import torch
 import torch.nn as nn
+from torch.utils import model_zoo
 from torchvision import models
 from dogsvscats.metrics import Metrics
 from dogsvscats import config
 
-MODELS = ["resnet18", "mobilenet_v3_small"]
+MODELS = {
+    "resnet18": "https://github.com/albertoburgosplaza/dogs-vs-cats/releases/download/pytorch-v0.5.1/resnet18.pt",
+    "mobilenet_v3_small": "https://github.com/albertoburgosplaza/dogs-vs-cats/releases/download/pytorch-v0.5.1/mobilenet_v3_small.pt",  # noqa
+}
 
 
-def load_model(model_name: str, checkpoint_path=None):
+def load_model(model_name: str, checkpoint_path=None, download=False):
     if model_name not in MODELS:
         raise ValueError(f"{model_name} not available.")
 
@@ -22,6 +26,10 @@ def load_model(model_name: str, checkpoint_path=None):
 
     if checkpoint_path:
         model.load_state_dict(torch.load(checkpoint_path))
+    elif download:
+        model.load_state_dict(
+            model_zoo.load_url(MODELS[model_name], progress=True, map_location="cpu")
+        )
 
     model = model.to(config.DEVICE)
     return model
