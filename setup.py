@@ -1,14 +1,18 @@
 # setup.py
 # Setup installation for the application
 
-from pathlib import Path
 from setuptools import find_namespace_packages, setup
+import os
 
-BASE_DIR = Path(__file__).parent
+BASE_DIR = os.environ.get("BASE_DIR", None)
+BASE_DIR = "." if BASE_DIR is None else BASE_DIR
 
 # Load packages from requirements.txt
-with open(Path(BASE_DIR, "requirements.txt")) as file:
+with open(f"{BASE_DIR}/requirements.txt") as file:
     required_packages = [ln.strip() for ln in file.readlines()]
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
 
 test_packages = [
     "great-expectations",
@@ -27,15 +31,19 @@ docs_packages = [
 
 setup(
     name="dogsvscats",
-    version="0.6.0",
+    version="0.6.6",
     license="Apache",
     description="Solution for Kaggle competition https://www.kaggle.com/c/dogs-vs-cats",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Alberto Burgos",
     author_email="albertoburgosplaza@gmail.com",
+    url="https://github.com/albertoburgosplaza/dogs-vs-cats",
     keywords=[
         "machine-learning",
         "artificial-intelligence",
-        "computer-vision" "kaggle",
+        "computer-vision",
+        "kaggle",
         "pytorch",
     ],
     classifiers=[
@@ -44,7 +52,7 @@ setup(
         "Topic :: Software Development :: Build Tools",
         "Programming Language :: Python :: 3",
     ],
-    python_requires=">=3.8.5",
+    # python_requires=">=3.8.5",
     packages=find_namespace_packages(),
     install_requires=[required_packages],
     extras_require={

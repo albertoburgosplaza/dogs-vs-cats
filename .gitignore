@@ -4,3 +4,4 @@ data
 *.pt
 .vscode/launch.json
 venv*
+dist
