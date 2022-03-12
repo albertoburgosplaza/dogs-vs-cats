@@ -3,5 +3,5 @@ data
 *.egg*
 *.pt
 .vscode/launch.json
-venv*
+venv
 dist
