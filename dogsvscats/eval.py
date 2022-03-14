@@ -9,10 +9,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-m", "--model", default=config.MODEL_NAME, choices=MODELS, help="Model name"
+    "-m", "--model", choices=MODELS, help="Model name"
 )
 parser.add_argument(
-    "-cp", "--checkpoint-path", default=config.CHECKPOINT_PATH, help="Checkpoint Path"
+    "-cp", "--checkpoint-path", help="Checkpoint Path"
 )
 parser.add_argument("-w", "--workers", default=config.NW, help="Workers", type=int)
 parser.add_argument(

@@ -10,9 +10,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--image", help="Input image")
-parser.add_argument(
-    "-m", "--model", default=config.MODEL_NAME, choices=MODELS, help="Model name"
-)
+parser.add_argument("-m", "--model", choices=MODELS, help="Model name")
 parser.add_argument("-cp", "--checkpoint-path", default=None, help="Checkpoint Path")
 parser.add_argument(
     "-d",

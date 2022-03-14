@@ -14,7 +14,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "-m",
     "--model",
-    default=config.MODEL_NAME,
     choices=MODELS,
     help="Model name",
     type=str,
@@ -22,7 +21,6 @@ parser.add_argument(
 parser.add_argument(
     "-cp",
     "--checkpoint-path",
-    default=config.CHECKPOINT_PATH,
     help="Checkpoint Path",
     type=str,
 )
