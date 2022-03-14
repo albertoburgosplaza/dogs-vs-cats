@@ -10,24 +10,17 @@ help:
 	@echo "build : create a package from setup.py."
 	@echo "testpypi : upload packages to testpypi."
 
-# Conda
-.ONESHELL:
-conda:
-	wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-	&& sh Miniconda3-latest-Linux-x86_64.sh -b -u \
-	&& rm -fr Miniconda3-latest-Linux-x86_64.sh \
-	&& ~/miniconda3/bin/conda init bash
-
 # Environment
 .ONESHELL:
-venv-dev:
-	conda create -y -n dogsvscats python=3.7 && \
-	conda activate dogsvscats && \
-	pip install --upgrade pip setuptools wheel && \
-	pip install -e ".[dev]" --no-cache-dir
-
-.ONESHELL:
 venv:
+	python3 -m venv venv
+	source venv/bin/activate && \
+	pip install --upgrade pip setuptools wheel && \
+	pip install . --no-cache-dir
+
+# Dev Environment
+.ONESHELL:
+dvenv:
 	python3 -m venv venv
 	source venv/bin/activate && \
 	pip install --upgrade pip setuptools wheel && \
