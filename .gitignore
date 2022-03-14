@@ -5,3 +5,4 @@ data
 .vscode/launch.json
 venv
 dist
+build
