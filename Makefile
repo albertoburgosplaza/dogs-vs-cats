@@ -24,7 +24,7 @@ dvenv:
 	python3 -m venv venv
 	source venv/bin/activate && \
 	pip install --upgrade pip setuptools wheel && \
-	pip install -e . --no-cache-dir
+	pip install -e ".[dev]" --no-cache-dir
 
 # Styling
 .PHONY: style
