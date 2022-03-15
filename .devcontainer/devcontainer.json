@@ -1,0 +1,45 @@
+{
+    "name": "Working environment",
+    "context": "..",
+    "dockerFile": "../Dockerfile",
+    "settings": {
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "explorer.confirmDragAndDrop": false,
+        "editor.formatOnType": true,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "python.linting.pylintArgs": [
+            "--generated-members=numpy.*,torch.*,cv2.*",
+            "--disable=C0111,C0115,C0116"
+        ],
+        "python.linting.flake8Args": [
+            "--max-line-length=120"
+        ],
+        "extensions.autoCheckUpdates": false,
+        "extensioh": true,
+        "python.showStartPagns.autoUpdate": false,
+        "git.autofetce": false
+    },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+    ],
+    "runArgs": [
+        "--gpus",
+        "all",
+        "--device=/dev/video0:/dev/video0",
+        "-e",
+        "DISPLAY=${env:DISPLAY}",
+        "-v",
+        "/tmp/.X11-unix:/tmp/.X11-unix", // xhost +local:docker
+        "-v",
+        "/home/alberto/.ssh:/home/ml/.ssh:ro" // ssh github
+    ],
+    "build": {
+        "args": {
+            "USER_ID": "1000",
+            "GROUP_ID": "1000"
+        }
+    }
+}
