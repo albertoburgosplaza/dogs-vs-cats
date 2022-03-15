@@ -52,7 +52,7 @@ setup(
         "Topic :: Software Development :: Build Tools",
         "Programming Language :: Python :: 3",
     ],
-    # python_requires=">=3.8.5",
+    python_requires=">=3.8.10",
     packages=find_namespace_packages(),
     install_requires=[required_packages],
     extras_require={
