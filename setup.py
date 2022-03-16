@@ -20,7 +20,15 @@ test_packages = [
     "pytest-cov",
 ]
 
-dev_packages = ["black", "flake8", "isort", "jupyterlab", "pre-commit", "mypy"]
+dev_packages = [
+    "black",
+    "flake8",
+    "isort",
+    "jupyterlab",
+    "pre-commit",
+    "mypy",
+    "pylint",
+]
 
 docs_packages = [
     "mkdocs",
