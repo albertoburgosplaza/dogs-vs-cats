@@ -6,7 +6,6 @@ from torch.utils.data import DataLoader
 from dogsvscats.data import get_datasets
 from dogsvscats.model import train_model, load_model, MODELS
 from dogsvscats.callbacks import EarlyStopping
-from dogsvscats import config
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -15,6 +14,7 @@ parser.add_argument(
     "-m",
     "--model",
     choices=MODELS,
+    default="mobilenet_v3_small",
     help="Model name",
     type=str,
 )
@@ -24,37 +24,35 @@ parser.add_argument(
     help="Checkpoint Path",
     type=str,
 )
-parser.add_argument("-w", "--workers", default=config.NW, help="Workers", type=int)
+parser.add_argument("-w", "--workers", default=0, help="Workers", type=int)
+parser.add_argument("-bs", "--batch-size", default=8, help="Batch size", type=int)
 parser.add_argument(
-    "-bs", "--batch-size", default=config.BS, help="Batch size", type=int
+    "-lr", "--learning-rate", default=0.01, help="Learning rate", type=float
 )
-parser.add_argument(
-    "-lr", "--learning-rate", default=config.LR, help="Learning rate", type=float
-)
-parser.add_argument("-e", "--epochs", default=config.EPOCHS, help="Epochs", type=int)
+parser.add_argument("-e", "--epochs", default=1, help="Epochs", type=int)
 
 parser.add_argument(
     "-sp",
     "--scheduler-patience",
-    default=config.SCHEDULER_PATIENCE,
+    default=3,
     help="Scheduler patience",
     type=int,
 )
 parser.add_argument(
     "-esp",
     "--early-stopping-patience",
-    default=config.EARLYSTOPPING_PATIENCE,
+    default=5,
     help="Early stopping patience",
     type=int,
 )
 parser.add_argument("-d", "--debug", default=False, help="Debug", action="store_true")
 parser.add_argument(
-    "-df", "--debug-frac", default=0.05, help="Debug fraction", type=float
+    "-df", "--debug-fraction", default=0.05, help="Debug fraction", type=float
 )
 parser.add_argument(
     "-vf",
-    "--valid-frac",
-    default=config.VALID_FRAC,
+    "--validation-fraction",
+    default=0.2,
     help="Validation fraction",
     type=float,
 )
@@ -62,11 +60,15 @@ args = parser.parse_args()
 
 
 train_ds, valid_ds, _ = get_datasets(
-    valid_frac=args.valid_frac, debug=args.debug, debug_frac=args.debug_frac
+    valid_frac=args.validation_fraction,
+    debug=args.debug,
+    debug_frac=args.debug_fraction,
 )
 
 train_dl = DataLoader(train_ds, args.batch_size, shuffle=True, num_workers=args.workers)
-valid_dl = DataLoader(valid_ds, args.batch_size, shuffle=True, num_workers=args.workers)
+valid_dl = DataLoader(
+    valid_ds, args.batch_size, shuffle=False, num_workers=args.workers
+)
 
 model = load_model(args.model)
 
